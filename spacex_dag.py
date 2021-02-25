@@ -21,12 +21,10 @@ t1 = BashOperator(
     bash_command="python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data", 
     dag=dag
 )
-rocket_lst=["all","falcon1","falcon9","falconheavy"]
-for i in rocket_lst:
-    t2 = BashOperator(
-        task_id="print_data", 
-        bash_command="cat /var/data/year={{ execution_date.year }}/rocket={{ params.rocket }}/data.csv", 
-        params={"rocket": i}, # falcon1/falcon9/falconheavy
-        dag=dag
-        )
-    t1 >> t2
+t2 = BashOperator(
+    task_id="print_data", 
+    bash_command="cat /var/data/year={{ execution_date.year }}/rocket={{ params.rocket }}/data.csv", 
+    params={"rocket": "all"}, # falcon1/falcon9/falconheavy
+    dag=dag
+)
+t1 >> t2
