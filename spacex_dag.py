@@ -19,7 +19,7 @@ dict={"python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.y
       "python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r falcon1":{"rocket": "falcon1"},
       "python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r falcon9":{"rocket": "falcon9"},
       "python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r falconheavy":{"rocket": "falconheavy"}}
-for i,j in dict.items:
+for i,j in dict.items():
     t1 = BashOperator(
     task_id="get_data", 
     bash_command=i, 
