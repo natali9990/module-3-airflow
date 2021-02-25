@@ -2,8 +2,8 @@ from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from datetime import datetime, timedelta
 
-def task_rocket(i,j):
-    default_args = {
+
+default_args = {
     "owner": "airflow",
     "depends_on_past": False,
     "start_date": datetime(2005, 1, 1),
@@ -12,8 +12,9 @@ def task_rocket(i,j):
     "email_on_retry": False,
     "retries": 0,
     "retry_delay": timedelta(minutes=5),
-    }
+}
 
+def task_rocket(i,j):
     dag = DAG("spacex", default_args=default_args, schedule_interval="0 0 1 1 *")
 
     t1 = BashOperator(
