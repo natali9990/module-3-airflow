@@ -20,7 +20,7 @@ for i in rocet_lst:
     if i==1:
         rock=""
         params={"rocket": "all"}
-     else:
+    else:
         rock=f"-r {i}"
         params={"rocket": i}
     t1 = BashOperator(
