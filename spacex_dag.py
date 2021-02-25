@@ -15,22 +15,20 @@ default_args = {
 }
 
 dag = DAG("spacex", default_args=default_args, schedule_interval="0 0 1 1 *")
-
-def task_rocket(i,j):
+dict={"python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data":{"rocket": "all"},
+      "python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r falcon1":{"rocket": "falcon1"},
+      "python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r falcon9":{"rocket": "falcon9"},
+      "python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r falconheavy":{"rocket": "falconheavy"}}
+for i in dict:
     t1 = BashOperator(
-        task_id="get_data", 
-        bash_command=i, 
-        dag=dag
+    task_id="get_data", 
+    bash_command=i, 
+    dag=dag
     )
     t2 = BashOperator(
-        task_id="print_data", 
-        bash_command="cat /var/data/year={{ execution_date.year }}/rocket={{params.rocket}}/data.csv", 
-        params=j, # falcon1/falcon9/falconheavy
-        dag=dag
+    task_id="print_data", 
+    bash_command="cat /var/data/year={{ execution_date.year }}/rocket={{params.rocket}}/data.csv", 
+    params=dict[i], # falcon1/falcon9/falconheavy
+    dag=dag
     )
     t1 >> t2
-task_rocket("python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data",{"rocket": "all"})
-#task_rocket("python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r falcon9",{"rocket": "falcon9"})
-#rocket_lst=["falcon1","falcon9","falconheavy"]
-#for i in rocket_lst:
-    #task("python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r {{params.rocket}}",{"rocket": i})
