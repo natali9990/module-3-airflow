@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # parser.add_argument('-e', dest='end_date', type=valid_date, required=True, help='filter launches by date (YYYY-MM-DD)')
     parser.add_argument('-o', dest='output_dir', type=str, required=True, help='output directory for csv files')
     parser.add_argument('-y', dest='launch_year', type=int, required=True, help='filter by launch year (e.g. 2005)')
-    parser.add_argument('-r', dest='rocket', type=str, required=True, help='rocket type (e.g. "falcon9")')
+    parser.add_argument('-r', dest='rocket', type=str, default='', help='rocket type (e.g. "falcon9")')
 
     args = parser.parse_args()
     print(args)
