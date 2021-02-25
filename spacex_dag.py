@@ -15,14 +15,15 @@ default_args = {
 }
 
 dag = DAG("spacex", default_args=default_args, schedule_interval="0 0 1 1 *")
-dict={"python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data":{"rocket": "all"},
-      "python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r falcon1":{"rocket": "falcon1"},
-      "python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r falcon9":{"rocket": "falcon9"},
-      "python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r falconheavy":{"rocket": "falconheavy"}}
+dict={"":{"rocket": "all"},
+      " -r falcon1":{"rocket": "falcon1"},
+      " -r falcon9":{"rocket": "falcon9"},
+      " -r falconheavy":{"rocket": "falconheavy"}}
 for i,j in dict.items():
+    comm1="python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data"+i
     t1 = BashOperator(
     task_id="get_data", 
-    bash_command=i, 
+    bash_command=comm1, 
     dag=dag
     )
     t2 = BashOperator(
