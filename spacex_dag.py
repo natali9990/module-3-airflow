@@ -31,6 +31,7 @@ def task(rock,params):
     )
     t1 >> t2
 task("python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data",{"rocket": "all"})
+task("python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r falcon1",{"rocket": "falcon1"})
 #rocket_lst=["falcon1","falcon9","falconheavy"]
 #for i in rocket_lst:
     #task("python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data -r {{params.rocket}}",{"rocket": i})
