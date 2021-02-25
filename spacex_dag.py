@@ -21,7 +21,7 @@ for i in rocet_lst:
         rock=""
         params={"rocket": "all"}
     else:
-        rock="[-r "+ i +"]"
+        rock=i
         params={"rocket": i}
     t1 = BashOperator(
         task_id="get_data", 
