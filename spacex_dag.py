@@ -24,7 +24,7 @@ for i in rocet_lst:
     )
     t2 = BashOperator(
     task_id="print_data", 
-    bash_command="cat /var/data/year={{ execution_date.year }}/rocket={{i if i!='' else "all"}}/data.csv", 
+    bash_command="cat /var/data/year={{ execution_date.year }}/rocket={{i if i!='' else 'all'}}/data.csv", 
     #params={"rocket": "all"}, # falcon1/falcon9/falconheavy
     dag=dag
     )
