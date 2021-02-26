@@ -21,13 +21,15 @@ dict={"":{"rocket": "all"},
       " -r falconheavy":{"rocket": "falconheavy"}}
 for i,j in dict.items():
     comm1="python3 /root/airflow/dags/spacex/load_launches.py -y {{ execution_date.year }} -o /var/data"+i
+    name1="get_data_"+j["rocket"]
+    name2="print_data_"+j["rocket"]
     t1 = BashOperator(
-    task_id="get_data", 
+    task_id=name1, 
     bash_command=comm1, 
     dag=dag
     )
     t2 = BashOperator(
-    task_id="print_data", 
+    task_id=name2, 
     bash_command="cat /var/data/year={{ execution_date.year }}/rocket={{params.rocket}}/data.csv", 
     params=j, # falcon1/falcon9/falconheavy
     dag=dag
