@@ -26,13 +26,14 @@ insert_dict={'billing':["user_id, billing_period, service, tariff, cast(sum as I
 for i,j in insert_dict.items():
     if i!='dm_user_traffic':
         name='ods_'+i
+        inquiry=f"""
+            insert overwrite table nmezhevova.ods_{i} partition (year='{{ execution_date.year }}') 
+            select {j[0]} from nmezhevova.stg_{i} where year({j[1]}) = {{ execution_date.year }};
+            """
         ods_table = DataProcHiveOperator(
             task_id=name,
             dag=dag,
-            query=f"""
-            insert overwrite table nmezhevova.ods_{i} partition (year='{{ execution_date.year }}') 
-            select {j[0]} from nmezhevova.stg_{i} where year({j[1]}) = {{ execution_date.year }};
-            """,            
+            query=inquiry,            
             cluster_name='cluster-dataproc',
             job_name=USERNAME + f'_ods_{i}_{{ execution_date.year }}_{{ params.job_suffix }}',
             params={"job_suffix": randint(0, 100000)},
