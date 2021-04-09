@@ -25,7 +25,7 @@ insert_dict={'ods_billing':["user_id, billing_period, service, tariff, cast(sum 
 
 for i,j in insert_dict.items():            
    inquiry='insert overwrite table nmezhevova.'+i+" partition (year='{{ execution_date.year }}') select "+ \
-   j[0]+'from nmezhevova.'+j[2]+' where year('+j[1]+') = {{ execution_date.year }}'+(' GROUP BY user_id' if i=='dm_user_traffic' else '')+';'
+   j[0]+' from nmezhevova.'+j[2]+' where year('+j[1]+') = {{ execution_date.year }}'+(' GROUP BY user_id' if i=='dm_user_traffic' else '')+';'
    ods_table = DataProcHiveOperator(
    task_id=i,
    dag=dag,
