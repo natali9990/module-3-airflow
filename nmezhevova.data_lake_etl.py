@@ -33,7 +33,7 @@ for i,j in insert_dict.items():
             dag=dag,
             query=inquiry,            
             cluster_name='cluster-dataproc',
-            job_name=USERNAME + f'_ods_{i}_{{ execution_date.year }}_{{ params.job_suffix }}',
+            job_name=USERNAME + '_ods_'+i+'_{{ execution_date.year }}_{{ params.job_suffix }}',
             params={"job_suffix": randint(0, 100000)},
             region='europe-west3',
         )
