@@ -26,7 +26,7 @@ insert_dict={'billing':["user_id, billing_period, service, tariff, cast(sum as I
 for i,j in insert_dict.items():
     if i!='dm_user_traffic':
         ods_table = DataProcHiveOperator(
-            task_id=f'ods_{i}',
+            task_id='ods_'+i,
             dag=dag,
             query=f"""
             insert overwrite table nmezhevova.ods_{i} partition (year='{{ execution_date.year }}') 
