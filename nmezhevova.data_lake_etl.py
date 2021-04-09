@@ -17,7 +17,7 @@ dag = DAG(
     description='Data Lake ETL tasks',
     schedule_interval="0 0 1 1 *",
 )
-insert_dict={'ods_billing':["user_id, billing_period, service, tariff, cast(sum as INT), cast(created_at as DATE),'created_at','stg_billing'],
+insert_dict={'ods_billing':["user_id, billing_period, service, tariff, cast(sum as INT), cast(created_at as DATE)",'created_at','stg_billing'],
              'ods_issue':["cast(user_id as INT), cast(start_time as TIMESTAMP), cast(end_time as TIMESTAMP), title, description, service",'start_time','stg_issue'],
              'ods_payment':["user_id, pay_doc_type, pay_doc_num, account,phone,billing_period,cast(pay_date as DATE),cast(sum as INT)",'pay_date','stg_payment'],
              'ods_traffic':["user_id,cast(`timestamp` as TIMESTAMP),device_id, device_ip_addr, bytes_sent,bytes_received",'cast(`timestamp` as TIMESTAMP)','stg_traffic'],
