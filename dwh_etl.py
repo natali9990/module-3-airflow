@@ -5,7 +5,7 @@ from airflow import DAG
 from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.dummy_operator import DummyOperator
 
-USERNAME = 'emateshuk'
+USERNAME = 'nmezhevova'
 
 default_args = {
     'owner': USERNAME,
