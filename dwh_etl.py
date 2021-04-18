@@ -74,7 +74,7 @@ for i,j in link_dict.items():
         """
     )
 
-all_hubs_loaded >> dds_link
+	all_hubs_loaded >> dds_link
 
 all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
 
