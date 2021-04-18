@@ -126,4 +126,4 @@ insert into rtk_de.nmezhevova.dds_sat_"""+i+"""_details
 
     all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
 
-    dds_sat >> all_links_loaded
+    dds_sat >> all_sat_loaded
