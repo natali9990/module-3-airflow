@@ -106,7 +106,7 @@ for i,j in sat_dict.items():
 		
 		latest_records as (
 			select * from (
-				select """+j[1]+\""",
+				select """+j[1]+""",
 				case when rank() over (partition by c.user_pk order by c.load_date desc)=1
 				then 'Y' else 'N' end as latest
 				from update_records as c) as s
