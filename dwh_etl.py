@@ -57,12 +57,12 @@ link_dict={'payment':["pay_pk,user_pk, billing_period_pk, pay_doc_type_pk, effec
                           "user_account"]}
 for i,j in link_dict.items():
     dds_link = PostgresOperator(
-        task_id="dds_link_"+i,
-        dag=dag,
-        # postgres_conn_id="postgres_default",
-        sql="""
-                with row_rank_1 as (
-                    select distinct """+j[0]+\
+    task_id="dds_link_"+i,
+    dag=dag,
+    # postgres_conn_id="postgres_default",
+    sql="""
+           with row_rank_1 as (
+             select distinct """+j[0]+\
 	                    """ from rtk_de.nmezhevova.ods_v_payment 
 	                where EXTRACT(year FROM  pay_date)={{ execution_date.year }})
                 insert into rtk_de.nmezhevova.dds_link_"""+i+\
@@ -76,9 +76,9 @@ for i,j in link_dict.items():
 
 	all_hubs_loaded >> dds_link
 
-all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
+	all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
 
-dds_link >> all_links_loaded
+	dds_link >> all_links_loaded
     
     # словарь соответсвия названия саттелитов и набора колонок для вставок, ключей    
 sat_dict={'user':["a.user_pk,a.user_hashdiff,a.phone,a.effective_from,a.load_date,a.record_source",
