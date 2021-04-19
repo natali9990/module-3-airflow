@@ -92,6 +92,7 @@ sat_dict={'user':["a.user_pk,a.user_hashdiff,a.phone,a.effective_from,a.load_dat
            'pay':["a.user_pk,a.pay_doc_type_pk,a.pay_hashdiff,a.pay_doc_num,a.sum, a.effective_from,a.load_date,a.record_source",
                   "c.user_pk,c.pay_doc_type_pk,c.pay_hashdiff,c.load_date",
                   "e.user_pk,e.pay_doc_type_pk,e.pay_hashdiff,e.pay_doc_num,e.sum,e.effective_from,e.load_date,e.record_source"]}
+all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
 for i,j in sat_dict.items():
     dds_sat = PostgresOperator(
         task_id="dds_sat_"+i+"_details",
@@ -129,7 +130,7 @@ for i,j in sat_dict.items():
 
 all_links_loaded >> dds_sat
 
-all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
+
 
 dds_sat >> all_sat_loaded 
     
