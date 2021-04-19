@@ -44,9 +44,9 @@ for i in hub_lst:
         """
     )
 
-all_hubs_loaded = DummyOperator(task_id="all_hubs_loaded", dag=dag)
+	all_hubs_loaded = DummyOperator(task_id="all_hubs_loaded", dag=dag)
 
-dds_hub >> all_hubs_loaded
+	dds_hub >> all_hubs_loaded
 
  
 # словарь соответсвия названия линков и набора колонок для вставок, ключей    
