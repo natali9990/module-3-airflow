@@ -19,6 +19,7 @@ dag = DAG(
     schedule_interval="0 0 1 1 *",
 )
 # список сущностей для хабов
+all_hubs_loaded = DummyOperator(task_id="all_hubs_loaded", dag=dag)
 hub_lst=['user','account','pay_doc_type','billing_period']
 for i in hub_lst:
     dds_hub = PostgresOperator(
@@ -44,7 +45,7 @@ for i in hub_lst:
         """
     )
 
-    all_hubs_loaded = DummyOperator(task_id="all_hubs_loaded", dag=dag)
+    
 
     dds_hub >> all_hubs_loaded
 
@@ -56,6 +57,7 @@ link_dict={'payment':["pay_pk,user_pk, billing_period_pk, pay_doc_type_pk, effec
            'user_account':["user_account_pk,user_pk, account_pk, load_date, record_source",
                            "a.user_account_pk,a.user_pk, a.account_pk, a.load_date, a.record_source",
                           "user_account"]}
+all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
 for i,j in link_dict.items():
     dds_link = PostgresOperator(
     task_id="dds_link_"+i,
@@ -77,7 +79,7 @@ for i,j in link_dict.items():
 
     all_hubs_loaded >> dds_link
 
-    all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
+    
 
     dds_link >> all_links_loaded
     
