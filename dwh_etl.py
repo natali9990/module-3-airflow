@@ -48,7 +48,7 @@ for i in hub_lst:
 
     dds_hub >> all_hubs_loaded
 
-dds_link_user_payment = PostgresOperator(
+dds_link_payment = PostgresOperator(
     task_id="dds_link_payment",
     dag=dag,
     # postgres_conn_id="postgres_default",
