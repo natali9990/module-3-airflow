@@ -63,7 +63,7 @@ select a.pay_pk,a.user_pk, a.billing_period_pk, a.pay_doc_type_pk, a.effective_f
 	on a.pay_pk=tgt.pay_pk
 	where tgt.pay_pk is null;
 """
-ll_hubs_loaded >> dds_link_payment
+all_hubs_loaded >> dds_link_payment
 
 all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
 
