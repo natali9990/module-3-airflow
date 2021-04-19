@@ -77,9 +77,7 @@ for i,j in link_dict.items():
         """
     )
 
-    all_hubs_loaded >> dds_link
-
-    
+    all_hubs_loaded >> dds_link   
 
     dds_link >> all_links_loaded
     
@@ -128,11 +126,11 @@ for i,j in sat_dict.items():
         """
     )
 
-all_links_loaded >> dds_sat
+    all_links_loaded >> dds_sat
 
 
 
-dds_sat >> all_sat_loaded 
+    dds_sat >> all_sat_loaded 
     
 
 
