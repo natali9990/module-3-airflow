@@ -18,8 +18,12 @@ dag = DAG(
     description='DWH ETL tasks',
     schedule_interval="0 0 1 1 *",
 )
-# список сущностей для хабов
+
 all_hubs_loaded = DummyOperator(task_id="all_hubs_loaded", dag=dag)
+all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
+all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
+
+# список сущностей для хабов
 hub_lst=['user','account','pay_doc_type','billing_period']
 for i in hub_lst:
     dds_hub = PostgresOperator(
@@ -57,7 +61,7 @@ link_dict={'payment':["pay_pk,user_pk, billing_period_pk, pay_doc_type_pk, effec
            'user_account':["user_account_pk,user_pk, account_pk, load_date, record_source",
                            "a.user_account_pk,a.user_pk, a.account_pk, a.load_date, a.record_source",
                           "user_account"]}
-all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
+
 for i,j in link_dict.items():
     dds_link = PostgresOperator(
     task_id="dds_link_"+i,
@@ -90,7 +94,7 @@ sat_dict={'user':["a.user_pk,a.user_hashdiff,a.phone,a.effective_from,a.load_dat
            'pay':["a.user_pk,a.pay_doc_type_pk,a.pay_hashdiff,a.pay_doc_num,a.sum, a.effective_from,a.load_date,a.record_source",
                   "c.user_pk,c.pay_doc_type_pk,c.pay_hashdiff,c.load_date",
                   "e.user_pk,e.pay_doc_type_pk,e.pay_hashdiff,e.pay_doc_num,e.sum,e.effective_from,e.load_date,e.record_source"]}
-all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
+
 for i,j in sat_dict.items():
     dds_sat = PostgresOperator(
         task_id="dds_sat_"+i+"_details",
