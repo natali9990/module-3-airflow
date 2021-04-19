@@ -75,12 +75,12 @@ for i,j in link_dict.items():
         """
     )
 
-	all_hubs_loaded >> dds_link
+    all_hubs_loaded >> dds_link
 
-	all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
+    all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
 
-	dds_link >> all_links_loaded
-	break
+    dds_link >> all_links_loaded
+    break
     
 # словарь соответсвия названия саттелитов и набора колонок для вставок, ключей    
 sat_dict={'user':["a.user_pk,a.user_hashdiff,a.phone,a.effective_from,a.load_date,a.record_source",
