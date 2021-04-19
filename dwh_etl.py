@@ -54,15 +54,16 @@ dds_link = PostgresOperator(
     # postgres_conn_id="postgres_default",
     sql="""
     with row_rank_1 as (
-select distinct pay_pk,user_pk, billing_period_pk, pay_doc_type_pk, effective_from, load_date, record_source
+    select distinct pay_pk,user_pk, billing_period_pk, pay_doc_type_pk, effective_from, load_date, record_source
 	from rtk_de.nmezhevova.ods_v_payment 
 	where EXTRACT(year FROM  pay_date)=2013)
-insert into rtk_de.nmezhevova.dds_link_payment
-select a.pay_pk,a.user_pk, a.billing_period_pk, a.pay_doc_type_pk, a.effective_from, a.load_date, a.record_source from row_rank_1 as a
+    insert into rtk_de.nmezhevova.dds_link_payment
+    select a.pay_pk,a.user_pk, a.billing_period_pk, a.pay_doc_type_pk, a.effective_from, a.load_date, a.record_source from row_rank_1 as a
 	left join rtk_de.nmezhevova.dds_link_payment as tgt
 	on a.pay_pk=tgt.pay_pk
 	where tgt.pay_pk is null;
 """
+)
 all_hubs_loaded >> dds_link
 
 all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
