@@ -47,7 +47,29 @@ for i in hub_lst:
     all_hubs_loaded = DummyOperator(task_id="all_hubs_loaded", dag=dag)
 
     dds_hub >> all_hubs_loaded
-    
+
+dds_link_user_payment = PostgresOperator(
+    task_id="dds_link_payment",
+    dag=dag,
+    # postgres_conn_id="postgres_default",
+    sql="""
+    with row_rank_1 as (
+select distinct pay_pk,user_pk, billing_period_pk, pay_doc_type_pk, effective_from, load_date, record_source
+	from rtk_de.nmezhevova.ods_v_payment 
+	where EXTRACT(year FROM  pay_date)=2013)
+insert into rtk_de.nmezhevova.dds_link_payment
+select a.pay_pk,a.user_pk, a.billing_period_pk, a.pay_doc_type_pk, a.effective_from, a.load_date, a.record_source from row_rank_1 as a
+	left join rtk_de.nmezhevova.dds_link_payment as tgt
+	on a.pay_pk=tgt.pay_pk
+	where tgt.pay_pk is null;
+"""
+ll_hubs_loaded >> dds_link_payment
+
+all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
+
+dds_link_payment >> all_links_loaded
+
+ '''   
 # словарь соответсвия названия линков и набора колонок для вставок, ключей    
 link_dict={'payment':["pay_pk,user_pk, billing_period_pk, pay_doc_type_pk, effective_from, load_date, record_source",
                       "a.pay_pk,a.user_pk, a.billing_period_pk, a.pay_doc_type_pk, a.effective_from, a.load_date, a.record_source",
@@ -126,4 +148,5 @@ all_links_loaded >> dds_sat
 
 all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
 
-dds_sat >> all_sat_loaded
+dds_sat >> all_sat_loaded 
+'''
