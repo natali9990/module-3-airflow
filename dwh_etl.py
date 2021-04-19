@@ -80,6 +80,7 @@ for i,j in link_dict.items():
 	all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
 
 	dds_link >> all_links_loaded
+	break
     
 # словарь соответсвия названия саттелитов и набора колонок для вставок, ключей    
 sat_dict={'user':["a.user_pk,a.user_hashdiff,a.phone,a.effective_from,a.load_date,a.record_source",
@@ -95,9 +96,9 @@ for i,j in sat_dict.items():
         # postgres_conn_id="postgres_default",
         sql="""
                 with source_data as (
-		            select """+j[0]+\
-		""" from rtk_de.nmezhevova.ods_v_payment as a
-        where EXTRACT(year FROM  pay_date)={{ execution_date.year }}),
+		    select """+j[0]+\
+		    """ from rtk_de.nmezhevova.ods_v_payment as a
+                   where EXTRACT(year FROM  pay_date)={{ execution_date.year }}),
 		
 		update_records as (
 		select """+j[0]+\
@@ -113,8 +114,8 @@ for i,j in sat_dict.items():
 				from update_records as c) as s
 				where latest='Y')
 		
-insert into rtk_de.nmezhevova.dds_sat_"""+i+"""_details
-	select distinct """+j[2]+\
+	     insert into rtk_de.nmezhevova.dds_sat_"""+i+"""_details
+	     select distinct """+j[2]+\
 		""" from source_data as e
 		left join latest_records
 		on latest_records."""+i+"_hashdiff=e."+i+"""_hashdiff
@@ -123,11 +124,12 @@ insert into rtk_de.nmezhevova.dds_sat_"""+i+"""_details
         """
     )
 
-all_links_loaded >> dds_sat
+    all_links_loaded >> dds_sat
 
-all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
+    all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
 
-dds_sat >> all_sat_loaded 
+    dds_sat >> all_sat_loaded 
+    break
 
 
 
