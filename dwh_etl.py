@@ -124,8 +124,8 @@ for i,j in sat_dict.items():
 	     select distinct """+j[2]+\
 		""" from source_data as e
 		left join latest_records
-		on latest_records."""+i+"_hashdiff=e."+i+"""_hashdiff
-		where latest_records."""+i+"""_hashdiff is null;
+		on latest_records."""+i+"_hashdiff=e."+i+"_hashdiff" +((' and latest_records.'+i+'_pk=e.'+i+'_pk') if i=='user' else ' ')+\
+		"where latest_records."+i+"""_hashdiff is null;
                     
         """
     )
