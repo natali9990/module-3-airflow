@@ -14,6 +14,16 @@ batch.expect_column_unique_value_count_to_be_between(column=S, min_value=i, max_
 ### Проверка, что уникальные значения в колонке соответсвуют списку (подходит для колонок, в которых небольшое число уникальных значений)
 batch.expect_column_distinct_values_to_equal_set(column='pay_doc_type', value_set=['MASTER', 'MIR', 'VISA'])
 batch.expect_column_distinct_values_to_equal_set(column='tariff', value_set=['Gigabyte', 'Maxi', 'Megabyte','Mini'])
+batch.expect_column_distinct_values_to_equal_set(column='tittle', value_set=['Connect', 'Disconnect', 'Setup Environment'])
+batch.expect_column_distinct_values_to_equal_set(column='device_id', value_set=["d001",
+      "d002",
+      "d003",
+      "d004",
+      "d005",
+      "d006",
+      "d007",
+      "d008",
+      "d009"])
 ### Проверка, что значения в колонке лежат в диапазоне (для дат)
 batch.expect_column_values_to_be_between(column='pay_date', max_value='2020-12-31 00:00:00', min_value='2013-01-01 00:00:00', parse_strings_as_datetimes=True)
 ### Проверка, максимальное и минимальное значение в колонке лежат в диапазоне (для чисел)
