@@ -27,19 +27,19 @@ all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
 sources=['payment','billing','issue','traffic']
 for i in sources:
     clear_ods = PostgresOperator(
-        task_id=fr"clear_ods_{i}",
+        task_id="clear_ods_"+i,
 	dag=dag,        
-	sql=fr"""
-	DELETE FROM nmezhevova.ods_{i} where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}
+	sql="""
+	DELETE FROM nmezhevova.ods_"""+i+""" where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}
 	"""
 	)
     fill_ods = PostgresOperator(
-        task_id=fr"fill_ods_{i}",
+        task_id=fr"fill_ods_"+i",
 	dag=dag,        
-	sql=fr"""
-	INSERT INTO nmezhevova.ods_{i} 
-	SELECT * FROM nmezhevova.stg_{i}
-	where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}
+	sql="""
+	INSERT INTO nmezhevova.ods_"""+i+\ 
+	" SELECT * FROM nmezhevova.stg_"+i+\
+	""" where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}
 	"""
 	)    
     clear_ods>>fill_ods>>ods_loaded
