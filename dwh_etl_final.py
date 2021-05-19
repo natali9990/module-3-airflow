@@ -9,7 +9,7 @@ USERNAME = 'nmezhevova'
 
 default_args = {
     'owner': USERNAME,
-    'start_date': datetime(2013, 1, 1, 0, 0, 0)
+    'start_date': datetime(2012, 1, 1, 0, 0, 0)
 }
 
 dag = DAG(
@@ -142,7 +142,7 @@ for i,j in sat_dict.items():
     elif i== 'device':
         ods_tabl1='traffic'
         ods_key='device_id_pk'
-	col_date='event'
+        col_date='event'
     elif i== 'mdm':
         ods_tabl1='mdm'
         ods_key='user_pk'
