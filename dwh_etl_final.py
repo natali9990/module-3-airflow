@@ -36,10 +36,9 @@ for i in sources:
     fill_ods = PostgresOperator(
         task_id="fill_ods_"+i,
 	dag=dag,        
-	sql="INSERT INTO nmezhevova.ods_"+i+\ 
-	" SELECT * FROM nmezhevova.stg_"+i+\
-	" where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}"
-	)    
+	sql="INSERT INTO nmezhevova.ods_"+i+" SELECT * FROM nmezhevova.stg_"+i+" where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}"
+	) 
+	
     clear_ods>>fill_ods>>ods_loaded
 
 
