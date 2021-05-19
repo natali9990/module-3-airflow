@@ -51,10 +51,7 @@ for j in hub_lst:
 	            on a."""+i+"_pk=d."+i+"""_pk
 	            where d."""+i+"""_pk is null
         	"""
-    	)
-
-    
-    
+        )
         dds_hub >> all_hubs_loaded
 
  
