@@ -92,11 +92,11 @@ for i,j in link_dict.items():
     if i=='payment' or i=='user_account':
         ods_tabl='payment'
     elif i=='user_billing_period_service_tariff':
-	ods_tabl='billing'
+        ods_tabl='billing'
     elif i== 'user_service':
-	ods_tabl='issue'
+        ods_tabl='issue'
     elif i== 'user_device':
-	ods_tabl='traffic'
+        ods_tabl='traffic'
     dds_link = PostgresOperator(
     task_id="dds_link_"+i,
     dag=dag,
@@ -140,17 +140,17 @@ sat_dict={'user':["a.user_pk,a.user_hashdiff,a.phone,a.effective_from,a.load_dat
 
 for i,j in sat_dict.items():
     if i=='user' or i=='pay':
-	ods_tabl1='payment'
-	ods_key='user_pk'
+        ods_tabl1='payment'
+        ods_key='user_pk'
     elif i=='service':
-	ods_tabl1='issue'
-	ods_key="user_service_pk"
+        ods_tabl1='issue'
+        ods_key="user_service_pk"
     elif i== 'device':
-	ods_tabl1='traffic'
-	ods_key='device_id_pk'
+        ods_tabl1='traffic'
+        ods_key='device_id_pk'
     elif i== 'mdm':
-	ods_tabl1='mdm'
-	ods_key='user_pk'
+        ods_tabl1='mdm'
+        ods_key='user_pk'
     dds_sat = PostgresOperator(
     task_id="dds_sat_"+i+"_details",
     dag=dag,
