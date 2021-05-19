@@ -34,7 +34,7 @@ for i in sources:
 	"""
 	)
     fill_ods = PostgresOperator(
-        task_id=fr"fill_ods_"+i",
+        task_id="fill_ods_"+i",
 	dag=dag,        
 	sql="""
 	INSERT INTO nmezhevova.ods_"""+i+\ 
