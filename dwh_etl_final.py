@@ -27,17 +27,17 @@ all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
 sources=['payment','billing','issue','traffic']
 for i in sources:
     clear_ods = PostgresOperator(
-        task_id="clear_ods_"+i,
-	dag=dag,        
-	sql="""
-	DELETE FROM nmezhevova.ods_"""+i+""" where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}
-	"""
+    task_id="clear_ods_"+i,
+    dag=dag,        
+    sql="""
+    DELETE FROM nmezhevova.ods_"""+i+""" where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}
+    """
 	)
     fill_ods = PostgresOperator(
-        task_id="fill_ods_"+i,
-	dag=dag,        
-	sql="INSERT INTO nmezhevova.ods_"+i+" SELECT * FROM nmezhevova.stg_"+i+" where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}"
-	) 
+    task_id="fill_ods_"+i,
+    dag=dag,        
+    sql="INSERT INTO nmezhevova.ods_"+i+" SELECT * FROM nmezhevova.stg_"+i+" where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}"
+     ) 
 	
     clear_ods>>fill_ods>>ods_loaded
 
@@ -152,10 +152,10 @@ for i,j in sat_dict.items():
 	ods_tabl1='mdm'
 	ods_key='user_pk'
     dds_sat = PostgresOperator(
-        task_id="dds_sat_"+i+"_details",
-        dag=dag,
+    task_id="dds_sat_"+i+"_details",
+    dag=dag,
         # postgres_conn_id="postgres_default",
-        sql="""
+    sql="""
                 with source_data as (
 		    select """+j[0]+\
 		    " from rtk_de.nmezhevova.ods_v_"+ods_tabl1+""" as a
