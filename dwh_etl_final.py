@@ -69,26 +69,28 @@ link_dict={'payment':["pay_pk,user_pk, billing_period_pk, pay_doc_type_pk, effec
                            "a.user_account_pk,a.user_pk, a.account_pk, a.load_date, a.record_source",
                           "user_account"],
 	  'user_billing_period_service_tariff':["user_billing_period_service_tariff_pk,user_pk, billing_period_pk,service_pk,tariff_pk, effective_from, load_date,sum, record_source",
-						"a.user_billing_period_service_tariff_pk,a.user_pk, a.billing_period_pk,a.service_pk,a.tariff_pk, a.effective_from, a.load_date,sum, a.record_source",
-					       "user_billing_period_service_tariff_pk"],
+						"a.user_billing_period_service_tariff_pk,a.user_pk, a.billing_period_pk,a.service_pk,a.tariff_pk, a.effective_from, a.load_date,a.sum, a.record_source",
+					       "user_billing_period_service_tariff"],
 	  'user_service':["user_service_pk,user_pk, service_pk,start_time, end_time, load_date,  record_source",
-			  "a.user_service_pk,a.user_pk, a.service_pk,a.start_time, a.end_time, a.load_date,  a.record_source","user_service_pk"],
+			  "a.user_service_pk,a.user_pk, a.service_pk,a.start_time, a.end_time, a.load_date,  a.record_source",
+			  "user_service"],
 	  'user_device':["user_device_pk,user_pk, device_id_pk,effective_from, bytes_sent,bytes_received, load_date, record_source",
-			 "a.user_device_pk,a.user_pk, a.device_id_pk,a.effective_from, a.bytes_sent,a.bytes_received, a.load_date, a.record_source","user_device_pk"]}
+			 "a.user_device_pk,a.user_pk, a.device_id_pk,a.effective_from, a.bytes_sent,a.bytes_received, a.load_date, a.record_source",
+			 "user_device"]}
 
 for i,j in link_dict.items():
     if i=='payment' or i=='user_account':
         ods_tabl='payment'
-        col_date='pay_date'
+        col_date1='pay_date'
     elif i=='user_billing_period_service_tariff':
         ods_tabl='billing'
-        col_date='created_at'
+        col_date1='created_at'
     elif i== 'user_service':
         ods_tabl='issue'
-        col_date='start_time'
+        col_date1='start_time'
     elif i== 'user_device':
         ods_tabl='traffic'
-        col_date='event'
+        col_date1='event'
     dds_link = PostgresOperator(
     task_id="dds_link_"+i,
     dag=dag,
@@ -97,7 +99,7 @@ for i,j in link_dict.items():
            with row_rank_1 as (
              select distinct """+j[0]+\
 	                    " from rtk_de.nmezhevova.ods_v_"+ ods_tabl+
-	                " where EXTRACT(year FROM  "+col_date+""")={{ execution_date.year }})
+	                " where EXTRACT(year FROM  "+col_date1+""")={{ execution_date.year }})
                 insert into rtk_de.nmezhevova.dds_link_"""+i+\
                     " select "+j[1]+""" from row_rank_1 as a
 	                left join rtk_de.nmezhevova.dds_link_"""+i+""" as tgt
@@ -134,19 +136,19 @@ for i,j in sat_dict.items():
     if i=='user' or i=='pay':
         ods_tabl1='payment'
         ods_key='user_pk'
-        col_date='pay_date'
+        col_date2='pay_date'
     elif i=='service':
         ods_tabl1='issue'
         ods_key="user_service_pk"
-        col_date='start_time'
+        col_date2='start_time'
     elif i== 'device':
         ods_tabl1='traffic'
         ods_key='device_id_pk'
-        col_date='event'
+        col_date2='event'
     elif i== 'mdm':
         ods_tabl1='mdm'
         ods_key='user_pk'
-        col_date='registered_at'
+        col_date2='registered_at'
     dds_sat = PostgresOperator(
     task_id="dds_sat_"+i+"_details",
     dag=dag,
@@ -155,7 +157,7 @@ for i,j in sat_dict.items():
                 with source_data as (
 		    select """+j[0]+\
 		    " from rtk_de.nmezhevova.ods_v_"+ods_tabl1+""" as a
-                   where EXTRACT(year FROM  """+col_date+""")={{ execution_date.year }}),
+                   where EXTRACT(year FROM  """+col_date2+""")={{ execution_date.year }}),
 		
 		update_records as (
 		select """+j[0]+\
