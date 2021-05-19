@@ -55,7 +55,7 @@ for j in hub_lst:
 
     
     
-    dds_hub >> all_hubs_loaded
+        dds_hub >> all_hubs_loaded
 
  
 # словарь соответсвия названия линков и набора колонок для вставок, ключей    
