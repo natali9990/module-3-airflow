@@ -90,7 +90,7 @@ link_dict={'payment':["pay_pk,user_pk, billing_period_pk, pay_doc_type_pk, effec
 
 for i,j in link_dict.items():
     if i=='payment' or i=='user_account':
-	ods_tabl='payment'
+        ods_tabl='payment'
     elif i=='user_billing_period_service_tariff':
 	ods_tabl='billing'
     elif i== 'user_service':
