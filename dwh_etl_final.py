@@ -30,6 +30,12 @@ all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
 # список сущностей для хабов
 hub_lst={'payment':['user','account','pay_doc_type','billing_period'],'billing':['service','tariff'],'traffic':['device_id']}
 for j in hub_lst:
+    if j=='payment':
+        col_date='pay_date'
+    elif j=='billing':
+        col_date='created_at'
+    elif j=='traffic':
+        col_date='event'
     for i in hub_lst[j]:
         dds_hub = PostgresOperator(
         task_id="dds_hub_"+i,
@@ -42,7 +48,7 @@ for j in hub_lst:
 			            partition by """+i+"""_pk
 			            order by load_date asc) as row_number 
 			        from rtk_de.nmezhevova.ods_v_"""+j+\
-                    """ where EXTRACT(year FROM  pay_date)={{ execution_date.year }}) as h
+                    " where EXTRACT(year FROM  "+col_date+""")={{ execution_date.year }}) as h
 		        where row_number = 1)
             insert into rtk_de.nmezhevova.dds_hub_"""+i+\
 	            " select a."+i+"_pk,a."+i+"""_key,a.load_date,a.record_source
@@ -73,12 +79,16 @@ link_dict={'payment':["pay_pk,user_pk, billing_period_pk, pay_doc_type_pk, effec
 for i,j in link_dict.items():
     if i=='payment' or i=='user_account':
         ods_tabl='payment'
+        col_date='pay_date'
     elif i=='user_billing_period_service_tariff':
         ods_tabl='billing'
+        col_date='created_at'
     elif i== 'user_service':
         ods_tabl='issue'
+        col_date='start_time'
     elif i== 'user_device':
         ods_tabl='traffic'
+        col_date='event'
     dds_link = PostgresOperator(
     task_id="dds_link_"+i,
     dag=dag,
@@ -87,7 +97,7 @@ for i,j in link_dict.items():
            with row_rank_1 as (
              select distinct """+j[0]+\
 	                    " from rtk_de.nmezhevova.ods_v_"+ ods_tabl+
-	                """ where EXTRACT(year FROM  pay_date)={{ execution_date.year }})
+	                " where EXTRACT(year FROM  "+col_date+""")={{ execution_date.year }})
                 insert into rtk_de.nmezhevova.dds_link_"""+i+\
                     " select "+j[1]+""" from row_rank_1 as a
 	                left join rtk_de.nmezhevova.dds_link_"""+i+""" as tgt
@@ -124,15 +134,19 @@ for i,j in sat_dict.items():
     if i=='user' or i=='pay':
         ods_tabl1='payment'
         ods_key='user_pk'
+        col_date='pay_date'
     elif i=='service':
         ods_tabl1='issue'
         ods_key="user_service_pk"
+        col_date='start_time'
     elif i== 'device':
         ods_tabl1='traffic'
         ods_key='device_id_pk'
+	col_date='event'
     elif i== 'mdm':
         ods_tabl1='mdm'
         ods_key='user_pk'
+        col_date='registered_at'
     dds_sat = PostgresOperator(
     task_id="dds_sat_"+i+"_details",
     dag=dag,
@@ -141,7 +155,7 @@ for i,j in sat_dict.items():
                 with source_data as (
 		    select """+j[0]+\
 		    " from rtk_de.nmezhevova.ods_v_"+ods_tabl1+""" as a
-                   where EXTRACT(year FROM  pay_date)={{ execution_date.year }}),
+                   where EXTRACT(year FROM  """+col_date+""")={{ execution_date.year }}),
 		
 		update_records as (
 		select """+j[0]+\
@@ -152,7 +166,7 @@ for i,j in sat_dict.items():
 		latest_records as (
 			select * from (
 				select """+j[1]+""",
-				case when rank() over (partition by c.user_pk order by c.load_date desc)=1
+				case when rank() over (partition by c."""+ods_key+""" order by c.load_date desc)=1
 				then 'Y' else 'N' end as latest
 				from update_records as c) as s
 				where latest='Y')
