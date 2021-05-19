@@ -45,7 +45,7 @@ all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
 # список сущностей для хабов
 hub_lst={'payment':['user','account','pay_doc_type','billing_period'],'billing':['service','tariff'],'traffic':'device_id'}
 for j in hub_lst:
-    for i in hub_lst[i]:
+    for i in hub_lst[j]:
     	dds_hub = PostgresOperator(
         task_id="dds_hub_"+i,
         dag=dag,
