@@ -19,27 +19,27 @@ dag = DAG(
     schedule_interval="0 0 1 1 *",
 )
 
-ods_loaded = DummyOperator(task_id="ods_loaded", dag=dag)
+#ods_loaded = DummyOperator(task_id="ods_loaded", dag=dag)
 all_hubs_loaded = DummyOperator(task_id="all_hubs_loaded", dag=dag)
 all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
 all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
 
-sources=['payment','billing','issue','traffic']
-for i in sources:
-    clear_ods = PostgresOperator(
-    task_id="clear_ods_"+i,
-    dag=dag,        
-    sql="""
-    DELETE FROM nmezhevova.ods_"""+i+""" where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}
-    """
-	)
-    fill_ods = PostgresOperator(
-    task_id="fill_ods_"+i,
-    dag=dag,        
-    sql="INSERT INTO nmezhevova.ods_"+i+" SELECT * FROM nmezhevova.stg_"+i+" where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}"
-     ) 
+#sources=['payment','billing','issue','traffic']
+#for i in sources:
+    #clear_ods = PostgresOperator(
+    #task_id="clear_ods_"+i,
+    #dag=dag,        
+    #sql="""
+    #DELETE FROM nmezhevova.ods_"""+i+""" where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}
+    #"""
+	#)
+    #fill_ods = PostgresOperator(
+    #task_id="fill_ods_"+i,
+    #dag=dag,        
+    #sql="INSERT INTO nmezhevova.ods_"+i+" SELECT * FROM nmezhevova.stg_"+i+" where EXTRACT(year FROM  pay_date::DATE)={{ execution_date.year }}"
+     #) 
 	
-    clear_ods>>fill_ods>>ods_loaded
+    #clear_ods>>fill_ods>>ods_loaded
 
 
 # список сущностей для хабов
@@ -69,7 +69,7 @@ for j in hub_lst:
     	)
 
     
-    ods_loaded>>dds_hub
+    #ods_loaded>>dds_hub
     dds_hub >> all_hubs_loaded
 
  
