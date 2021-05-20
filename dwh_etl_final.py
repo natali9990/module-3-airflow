@@ -38,7 +38,7 @@ for i,j in sources.items():
     elif i=='issue':
         col_date='start_time'
     elif i=='traffic':
-        col_date='event'
+        col_date='to_timestamp(timestamp/1000)'
     clear_ods = PostgresOperator(
     task_id="clear_ods_"+i,
     dag=dag,        
