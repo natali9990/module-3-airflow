@@ -26,8 +26,11 @@ all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
 all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
 all_view_drop= DummyOperator(task_id="all_view_drop", dag=dag)
 
-sources=['payment','billing','issue','traffic']
-for i in sources:
+sources={'payment':"user_id,pay_doc_type,pay_doc_num, account,phone,billing_period,pay_date,cast(sum as decimal)",
+	 'billing':"user_id, billing_period,service, tariff, cast(sum as decimal), created_at",
+	 'issue':"cast(user_id as INT), start_time,end_time, service, description, title",
+	 'traffic':"user_id,to_timestamp(timestamp/1000),device_id, device_ip_addr, bytes_sent,bytes_received"}
+for i,j in sources.items():
     if i=='payment':
         col_date='pay_date'
     elif i=='billing':
@@ -46,7 +49,7 @@ for i in sources:
     fill_ods = PostgresOperator(
         task_id="fill_ods_"+i,
         dag=dag,        
-        sql="INSERT INTO nmezhevova.ods_"+i+" SELECT * FROM nmezhevova.stg_"+i+" where EXTRACT(year FROM  "+col_date+"::DATE)={{ execution_date.year }};"
+        sql="INSERT INTO nmezhevova.ods_"+i+" SELECT "+j+" FROM nmezhevova.stg_"+i+" where EXTRACT(year FROM  "+col_date+"::DATE)={{ execution_date.year }};"
          ) 
  
     clear_ods>>all_ods_clear
