@@ -156,10 +156,10 @@ for i,j in view_dict.items():
     elif i=='mdm':
         col_date='registered_at'
     view_one_year = PostgresOperator(
-        task_id="view_one_year_"+i+"_{{ execution_date.year }}",
-        dag=dag,
-        # postgres_conn_id="postgres_default",
-        sql="""
+    task_id="view_one_year_"+i+"_{{ execution_date.year }}",
+    dag=dag,
+    # postgres_conn_id="postgres_default",
+    sql="""
         create or replace view rtk_de.nmezhevova.ods_v_"""+i+"""_{{ execution_date.year }} as (
 	with staging as (
 		with derived_columns as (
@@ -171,8 +171,8 @@ for i,j in view_dict.items():
 		select * from columns_to_select)
 	select *, current_timestamp as load_date"""+j[3]+" from staging);"
 	    
-        all_ods_loaded >> view_one_year
-        view_one_year >> all_view_create
+    all_ods_loaded >> view_one_year
+    view_one_year >> all_view_create
 
 # список сущностей для хабов
 hub_lst={'payment':['user','account','pay_doc_type','billing_period'],'billing':['service','tariff'],'traffic':['device_id']}
