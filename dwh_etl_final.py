@@ -18,14 +18,160 @@ dag = DAG(
     description='DWH ETL tasks',
     schedule_interval="0 0 1 1 *",
 )
-
-
+all_ods_clear = DummyOperator(task_id="all_ods_clear", dag=dag)
+all_ods_loaded = DummyOperator(task_id="all_ods_loaded", dag=dag)
+all_view_create = DummyOperator(task_id="all_view_create", dag=dag)
 all_hubs_loaded = DummyOperator(task_id="all_hubs_loaded", dag=dag)
 all_links_loaded = DummyOperator(task_id="all_links_loaded", dag=dag)
 all_sat_loaded = DummyOperator(task_id="all_sat_loaded", dag=dag)
+all_view_drop= DummyOperator(task_id="all_view_drop", dag=dag)
 
+sources=['payment','billing','issue','traffic']
+for i in sources:
+    if i=='payment':
+        col_date='pay_date'
+    elif i=='billing':
+        col_date='created_at'
+    elif i=='issue':
+        col_date='start_time'
+    elif i=='traffic':
+        col_date='event'
+    clear_ods = PostgresOperator(
+    task_id="clear_ods_"+i,
+    dag=dag,        
+    sql="""
+    DELETE FROM nmezhevova.ods_"""+i+" where EXTRACT(year FROM  "+col_date+"""::DATE)={{ execution_date.year }};
+    """
+    )
+    fill_ods = PostgresOperator(
+        task_id="fill_ods_"+i,
+        dag=dag,        
+        sql="INSERT INTO nmezhevova.ods_"+i+" SELECT * FROM nmezhevova.stg_"+i+" where EXTRACT(year FROM  "+col_date+"::DATE)={{ execution_date.year }};"
+         ) 
+ 
+    clear_ods>>all_ods_clear
+    all_ods_clear>>fill_ods
+    fill_ods>>all_ods_loaded
 
-
+view_dict={'payment':["""user_id,pay_doc_type,pay_doc_num,account,phone,billing_period,	pay_date,sum,user_id::text as user_key,	account::text as account_key,
+                         billing_period::text as billing_period_key,pay_doc_type::text as pay_doc_type_key,'payment - data lake'::text as record_source 
+			  from rtk_de.nmezhevova.ods_payment""",
+		      """user_id,pay_doc_type,pay_doc_num,account,phone,billing_period,	pay_date,sum,user_key,account_key,billing_period_key,
+			pay_doc_type_key,record_source,
+			cast((md5(nullif(upper(trim(cast(user_id as varchar))), ''))) as text) as user_pk,
+			cast((md5(nullif(upper(trim(cast(account as varchar))), ''))) as text) as account_pk,
+			cast((md5(nullif(upper(trim(cast(billing_period as varchar))), ''))) as text) as billing_period_pk,
+			cast((md5(nullif(upper(trim(cast(pay_doc_type as varchar))), ''))) as text) as pay_doc_type_pk,			
+			cast(md5(nullif(concat_ws('||',
+				coalesce (nullif(upper(trim(cast(user_id as varchar))),''),'^^'),				
+				coalesce (nullif(upper(trim(cast(billing_period as varchar))),''),'^^'),
+				coalesce (nullif(upper(trim(cast(pay_doc_type as varchar))),''),'^^')),				
+				'^^||^^||^^')) as text) as pay_pk,
+			cast(md5(nullif(concat_ws('||',
+				coalesce (nullif(upper(trim(cast(user_id as varchar))),''),'^^'),	
+				coalesce (nullif(upper(trim(cast(account as varchar))),''),'^^')),
+				'^^||^^')) as text) as user_account_pk,				
+				cast(md5(nullif(concat_ws('||',
+					coalesce (nullif(upper(trim(cast(user_id as varchar))),''),'^^'),
+					coalesce (nullif(upper(trim(cast(phone as varchar))),''),'^^')),
+					'^^||^^')) as text) as user_hashdiff,
+				cast(md5(nullif(concat_ws('||',
+				coalesce (nullif(upper(trim(cast(pay_doc_type as varchar))),''),'^^'),	
+				coalesce (nullif(upper(trim(cast(pay_doc_num as varchar))),''),'^^'),
+				coalesce (nullif(upper(trim(cast(sum as varchar))),''),'^^')),
+				'^^||^^||^^')) as text) as pay_hashdiff""",
+		      """user_id,pay_doc_type,pay_doc_num,account,phone,billing_period,	pay_date,sum,user_key,account_key,billing_period_key,
+			pay_doc_type_key,record_source,	user_pk,account_pk,billing_period_pk,pay_doc_type_pk,pay_pk,user_account_pk,user_hashdiff,pay_hashdiff""",
+		      ",pay_date as effective_from"],
+	   'mdm':["id,legal_type,district,registered_at,billing_mode,is_vip,id::text as user_key,'mdm'::text as record_source from mdm.user",
+		  """id,legal_type,district,registered_at,billing_mode,	is_vip,	user_key,record_source,			
+			cast((md5(nullif(upper(trim(cast(id as varchar))), ''))) as text) as user_pk,						
+			cast(md5(nullif(concat_ws('||',
+					coalesce (nullif(upper(trim(cast(id as varchar))),''),'^^'),
+					coalesce (nullif(upper(trim(cast(legal_type as varchar))),''),'^^'),
+					coalesce (nullif(upper(trim(cast(district as varchar))),''),'^^'),
+					coalesce (nullif(upper(trim(cast(registered_at as varchar))),''),'^^'),
+					coalesce (nullif(upper(trim(cast(billing_mode as varchar))),''),'^^'),
+					coalesce (nullif(upper(trim(cast(is_vip as varchar))),''),'^^')),
+					'^^||^^||^^||^^||^^||^^')) as text) as mdm_hashdiff""",
+		  "id,legal_type,district,registered_at,billing_mode,is_vip,user_key,record_source,user_pk,mdm_hashdiff",""],
+	   'billing':["""user_id,billing_period,service,tariff,	sum,created_at,	user_id::text as user_key,billing_period::text as billing_period_key,
+			service::text as service_key,tariff::text as tariff_key,'billing - data lake'::text as record_source from rtk_de.nmezhevova.ods_billing""",
+		      """user_id,billing_period,service,tariff,	sum,created_at,	user_key,billing_period_key,service_key,tariff_key,record_source,			
+			cast((md5(nullif(upper(trim(cast(user_id as varchar))), ''))) as text) as user_pk,
+			cast((md5(nullif(upper(trim(cast(billing_period as varchar))), ''))) as text) as billing_period_pk,
+			cast((md5(nullif(upper(trim(cast(service as varchar))), ''))) as text) as service_pk,
+			cast((md5(nullif(upper(trim(cast(tariff as varchar))), ''))) as text) as tariff_pk,			
+			cast(md5(nullif(concat_ws('||',
+				coalesce (nullif(upper(trim(cast(user_id as varchar))),''),'^^'),				
+				coalesce (nullif(upper(trim(cast(billing_period as varchar))),''),'^^'),
+				coalesce (nullif(upper(trim(cast(service as varchar))),''),'^^'),
+				coalesce (nullif(upper(trim(cast(tariff as varchar))),''),'^^')),				
+				'^^||^^||^^||^^')) as text) as user_billing_period_service_tariff_pk""",
+		      """user_id,billing_period,service,tariff,	sum,created_at,	user_key,billing_period_key,service_key,tariff_key,record_source,
+			user_pk,billing_period_pk,service_pk,tariff_pk,	user_billing_period_service_tariff_pk""",
+		      ",created_at as effective_from"],
+	   'issue':["""user_id,	start_time,end_time,service,description,title,user_id::text as user_key,service::text as service_key,					
+			'issue - data lake'::text as record_source from rtk_de.nmezhevova.ods_issue""",
+		    """user_id,	start_time,end_time,service,description,title,user_key,	service_key,record_source,			
+			cast((md5(nullif(upper(trim(cast(user_id as varchar))), ''))) as text) as user_pk,
+			cast((md5(nullif(upper(trim(cast(service as varchar))), ''))) as text) as service_pk,						
+			cast(md5(nullif(concat_ws('||',
+				coalesce (nullif(upper(trim(cast(user_id as varchar))),''),'^^'),	
+				coalesce (nullif(upper(trim(cast(service as varchar))),''),'^^')),				
+				'^^||^^')) as text) as user_service_pk,					
+				cast(md5(nullif(concat_ws('||',
+				coalesce (nullif(upper(trim(cast(user_id as varchar))),''),'^^'),	
+				coalesce (nullif(upper(trim(cast(service as varchar))),''),'^^'),
+				coalesce (nullif(upper(trim(cast(description as varchar))),''),'^^'),
+				coalesce (nullif(upper(trim(cast(title as varchar))),''),'^^')),
+				'^^||^^||^^||^^')) as text) as service_hashdiff""",
+		    "user_id,	start_time,end_time,service,description,title,	user_key,service_key,record_source,user_pk,service_pk,user_service_pk,service_hashdiff",""],
+	   'traffic':["""user_id,event,	device_id,device_ip_addr,bytes_sent,bytes_received,user_id::text as user_key,device_id::text as device_id_key,					
+			'traffic - data lake'::text as record_source  from rtk_de.nmezhevova.ods_traffic""",
+		      """user_id,event,	device_id,device_ip_addr,bytes_sent,bytes_received,user_key,device_id_key,record_source,			
+			cast((md5(nullif(upper(trim(cast(user_id as varchar))), ''))) as text) as user_pk,
+			cast((md5(nullif(upper(trim(cast(device_id as varchar))), ''))) as text) as device_id_pk,						
+			cast(md5(nullif(concat_ws('||',
+				coalesce (nullif(upper(trim(cast(user_id as varchar))),''),'^^'),		
+				coalesce (nullif(upper(trim(cast(device_id as varchar))),''),'^^')),				
+				'^^||^^')) as text) as user_device_pk,				
+				cast(md5(nullif(concat_ws('||',
+				coalesce (nullif(upper(trim(cast(user_id as varchar))),''),'^^'),	
+				coalesce (nullif(upper(trim(cast(device_id as varchar))),''),'^^'),
+				coalesce (nullif(upper(trim(cast(device_ip_addr as varchar))),''),'^^')),
+				'^^||^^||^^')) as text) as device_hashdiff""",
+		      "user_id,event,device_id,device_ip_addr,bytes_sent,bytes_received,user_key,device_id_key,record_source,user_pk,device_id_pk,user_device_pk,device_hashdiff",
+		      ",event as effective_from"]}
+		  
+for i,j in view_dict.items():
+    if i=='payment':
+        col_date='pay_date'
+    elif i=='billing':
+        col_date='created_at'
+    elif i=='issue':
+        col_date='start_time'
+    elif i=='traffic':
+        col_date='event'
+    elif i=='mdm':
+        col_date='registered_at'
+    view_one_year = PostgresOperator(
+        task_id="view_one_year_"+i+"_{{ execution_date.year }}",
+        dag=dag,
+        # postgres_conn_id="postgres_default",
+        sql="""
+        create or replace view rtk_de.nmezhevova.ods_v_"""+i+"""_{{ execution_date.year }} as (
+	with staging as (
+		with derived_columns as (
+			select """+j[0]+"  where EXTRACT(year FROM  "+col_date+""")={{ execution_date.year }}),
+	        hashed_columns as (
+			select """+j[1]+""" from derived_columns),
+		columns_to_select as (		
+			select """+j[2]+""" from hashed_columns)
+		select * from columns_to_select)
+	select *, current_timestamp as load_date"""+j[3]+" from staging);"
+        all_ods_loaded>>view_one_year
+        view_one_year>>all_view_create
 
 # список сущностей для хабов
 hub_lst={'payment':['user','account','pay_doc_type','billing_period'],'billing':['service','tariff'],'traffic':['device_id']}
@@ -48,16 +194,17 @@ for j in hub_lst:
 			            partition by """+i+"""_pk
 			            order by load_date asc) as row_number 
 			        from rtk_de.nmezhevova.ods_v_"""+j+\
-                    " where EXTRACT(year FROM  "+col_date+""")={{ execution_date.year }}) as h
+                    "_{{ execution_date.year }} where EXTRACT(year FROM  "+col_date+""")={{ execution_date.year }}) as h
 		        where row_number = 1)
             insert into rtk_de.nmezhevova.dds_hub_"""+i+\
 	            " select a."+i+"_pk,a."+i+"""_key,a.load_date,a.record_source
 	            from row_rank_1 as a
 	            left join rtk_de.nmezhevova.dds_hub_"""+i+""" as d
 	            on a."""+i+"_pk=d."+i+"""_pk
-	            where d."""+i+"""_pk is null
+	            where d."""+i+"""_pk is null;
         	"""
         )
+        all_view_create>>dds_hub
         dds_hub >> all_hubs_loaded
 
  
@@ -99,7 +246,7 @@ for i,j in link_dict.items():
            with row_rank_1 as (
              select distinct """+j[0]+\
 	                    " from rtk_de.nmezhevova.ods_v_"+ ods_tabl+
-	                " where EXTRACT(year FROM  "+col_date1+""")={{ execution_date.year }})
+	                "_{{ execution_date.year }} where EXTRACT(year FROM  "+col_date1+""")={{ execution_date.year }})
                 insert into rtk_de.nmezhevova.dds_link_"""+i+\
                     " select "+j[1]+""" from row_rank_1 as a
 	                left join rtk_de.nmezhevova.dds_link_"""+i+""" as tgt
@@ -156,7 +303,7 @@ for i,j in sat_dict.items():
     sql="""
                 with source_data as (
 		    select """+j[0]+\
-		    " from rtk_de.nmezhevova.ods_v_"+ods_tabl1+""" as a
+		    " from rtk_de.nmezhevova.ods_v_"+ods_tabl1+"""_{{ execution_date.year }} as a
                    where EXTRACT(year FROM  """+col_date2+""")={{ execution_date.year }}),
 		
 		update_records as (
@@ -188,5 +335,14 @@ for i,j in sat_dict.items():
 
 
     dds_sat >> all_sat_loaded 
-    
+	    
+sources1=['payment','billing','issue','traffic','mdm']
+for i in sources1:
+    drop_view = PostgresOperator(
+    task_id="drop_view_"+i+"_{{ execution_date.year }}",
+    dag=dag,
+        # postgres_conn_id="postgres_default",
+    sql="drop  view if exists rtk_de.nmezhevova.ods_v_"+i+"_{{ execution_date.year }};"
+    all_sat_loaded >>drop_view
+    drop_view>>all_view_drop
 
