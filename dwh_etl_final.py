@@ -170,7 +170,7 @@ for i,j in view_dict.items():
 			select """+j[2]+""" from hashed_columns)
 		select * from columns_to_select)
 	select *, current_timestamp as load_date"""+j[3]+" from staging);"
-	    
+    )
     all_ods_loaded >> view_one_year
     view_one_year >> all_view_create
 
@@ -344,6 +344,7 @@ for i in sources1:
     dag=dag,
         # postgres_conn_id="postgres_default",
     sql="drop  view if exists rtk_de.nmezhevova.ods_v_"+i+"_{{ execution_date.year }};"
+    )
     all_sat_loaded >>drop_view
     drop_view>>all_view_drop
 
