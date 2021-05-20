@@ -156,7 +156,7 @@ for i,j in view_dict.items():
     elif i=='mdm':
         col_date='registered_at'
     view_one_year = PostgresOperator(
-    task_id="view_one_year_"+i+"_{{ execution_date.year }}",
+    task_id="view_one_year_{{ execution_date.year }}_"+i,
     dag=dag,
     # postgres_conn_id="postgres_default",
     sql="""
