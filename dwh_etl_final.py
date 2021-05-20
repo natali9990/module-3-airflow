@@ -29,7 +29,8 @@ all_view_drop= DummyOperator(task_id="all_view_drop", dag=dag)
 sources={'payment':"user_id,pay_doc_type,pay_doc_num, account,phone,billing_period,pay_date,cast(sum as decimal)",
 	 'billing':"user_id, billing_period,service, tariff, cast(sum as decimal), created_at",
 	 'issue':"cast(user_id as INT), start_time,end_time, service, description, title",
-	 'traffic':"user_id,to_timestamp(timestamp/1000),device_id, device_ip_addr, bytes_sent,bytes_received"}
+	 'traffic':"user_id,to_timestamp(timestamp/1000),device_id, device_ip_addr, bytes_sent,bytes_received",
+	'mdm':"*"}
 for i,j in sources.items():
     if i=='payment':
         col_date=['pay_date','pay_date']
@@ -39,6 +40,8 @@ for i,j in sources.items():
         col_date=['start_time','start_time']
     elif i=='traffic':
         col_date=['event','to_timestamp(timestamp/1000)']
+    elif i=='mdm':
+        col_date=['registered_at','registered_at']
     clear_ods = PostgresOperator(
     task_id="clear_ods_"+i,
     dag=dag,        
@@ -49,7 +52,8 @@ for i,j in sources.items():
     fill_ods = PostgresOperator(
         task_id="fill_ods_"+i,
         dag=dag,        
-        sql="INSERT INTO nmezhevova.ods_"+i+" SELECT "+j+" FROM nmezhevova.stg_"+i+" where EXTRACT(year FROM  "+col_date[1]+"::DATE)={{ execution_date.year }};"
+        sql="INSERT INTO nmezhevova.ods_"+i+" SELECT "+j+" FROM "+i+".user where EXTRACT(year FROM  "+col_date[1]+"::DATE)={{ execution_date.year }};" if i=='mdm' else \
+	    "INSERT INTO nmezhevova.ods_"+i+" SELECT "+j+" FROM nmezhevova.stg_"+i+" where EXTRACT(year FROM  "+col_date[1]+"::DATE)={{ execution_date.year }};" 
          ) 
  
     clear_ods>>all_ods_clear
@@ -57,8 +61,7 @@ for i,j in sources.items():
     fill_ods>>all_ods_loaded
 
 view_dict={'payment':["""user_id,pay_doc_type,pay_doc_num,account,phone,billing_period,	pay_date,sum,user_id::text as user_key,	account::text as account_key,
-                         billing_period::text as billing_period_key,pay_doc_type::text as pay_doc_type_key,'payment - data lake'::text as record_source 
-			  from rtk_de.nmezhevova.ods_payment""",
+                         billing_period::text as billing_period_key,pay_doc_type::text as pay_doc_type_key,'payment - data lake'::text as record_source""",
 		      """user_id,pay_doc_type,pay_doc_num,account,phone,billing_period,	pay_date,sum,user_key,account_key,billing_period_key,
 			pay_doc_type_key,record_source,
 			cast((md5(nullif(upper(trim(cast(user_id as varchar))), ''))) as text) as user_pk,
@@ -86,7 +89,7 @@ view_dict={'payment':["""user_id,pay_doc_type,pay_doc_num,account,phone,billing_
 		      """user_id,pay_doc_type,pay_doc_num,account,phone,billing_period,	pay_date,sum,user_key,account_key,billing_period_key,
 			pay_doc_type_key,record_source,	user_pk,account_pk,billing_period_pk,pay_doc_type_pk,pay_pk,user_account_pk,user_hashdiff,pay_hashdiff""",
 		      ",pay_date as effective_from"],
-	   'mdm':["id,legal_type,district,registered_at,billing_mode,is_vip,id::text as user_key,'mdm'::text as record_source from mdm.user",
+	   'mdm':["id,legal_type,district,registered_at,billing_mode,is_vip,id::text as user_key,'mdm'::text as record_source",
 		  """id,legal_type,district,registered_at,billing_mode,	is_vip,	user_key,record_source,			
 			cast((md5(nullif(upper(trim(cast(id as varchar))), ''))) as text) as user_pk,						
 			cast(md5(nullif(concat_ws('||',
@@ -99,7 +102,7 @@ view_dict={'payment':["""user_id,pay_doc_type,pay_doc_num,account,phone,billing_
 					'^^||^^||^^||^^||^^||^^')) as text) as mdm_hashdiff""",
 		  "id,legal_type,district,registered_at,billing_mode,is_vip,user_key,record_source,user_pk,mdm_hashdiff",""],
 	   'billing':["""user_id,billing_period,service,tariff,	sum,created_at,	user_id::text as user_key,billing_period::text as billing_period_key,
-			service::text as service_key,tariff::text as tariff_key,'billing - data lake'::text as record_source from rtk_de.nmezhevova.ods_billing""",
+			service::text as service_key,tariff::text as tariff_key,'billing - data lake'::text as record_source""",
 		      """user_id,billing_period,service,tariff,	sum,created_at,	user_key,billing_period_key,service_key,tariff_key,record_source,			
 			cast((md5(nullif(upper(trim(cast(user_id as varchar))), ''))) as text) as user_pk,
 			cast((md5(nullif(upper(trim(cast(billing_period as varchar))), ''))) as text) as billing_period_pk,
@@ -115,7 +118,7 @@ view_dict={'payment':["""user_id,pay_doc_type,pay_doc_num,account,phone,billing_
 			user_pk,billing_period_pk,service_pk,tariff_pk,	user_billing_period_service_tariff_pk""",
 		      ",created_at as effective_from"],
 	   'issue':["""user_id,	start_time,end_time,service,description,title,user_id::text as user_key,service::text as service_key,					
-			'issue - data lake'::text as record_source from rtk_de.nmezhevova.ods_issue""",
+			'issue - data lake'::text as record_source""",
 		    """user_id,	start_time,end_time,service,description,title,user_key,	service_key,record_source,			
 			cast((md5(nullif(upper(trim(cast(user_id as varchar))), ''))) as text) as user_pk,
 			cast((md5(nullif(upper(trim(cast(service as varchar))), ''))) as text) as service_pk,						
@@ -131,7 +134,7 @@ view_dict={'payment':["""user_id,pay_doc_type,pay_doc_num,account,phone,billing_
 				'^^||^^||^^||^^')) as text) as service_hashdiff""",
 		    "user_id,	start_time,end_time,service,description,title,	user_key,service_key,record_source,user_pk,service_pk,user_service_pk,service_hashdiff",""],
 	   'traffic':["""user_id,event,	device_id,device_ip_addr,bytes_sent,bytes_received,user_id::text as user_key,device_id::text as device_id_key,					
-			'traffic - data lake'::text as record_source  from rtk_de.nmezhevova.ods_traffic""",
+			'traffic - data lake'::text as record_source""",
 		      """user_id,event,	device_id,device_ip_addr,bytes_sent,bytes_received,user_key,device_id_key,record_source,			
 			cast((md5(nullif(upper(trim(cast(user_id as varchar))), ''))) as text) as user_pk,
 			cast((md5(nullif(upper(trim(cast(device_id as varchar))), ''))) as text) as device_id_pk,						
@@ -166,7 +169,7 @@ for i,j in view_dict.items():
         create or replace view rtk_de.nmezhevova.ods_v_"""+i+"""_{{ execution_date.year }} as (
 	with staging as (
 		with derived_columns as (
-			select """+j[0]+"  where EXTRACT(year FROM  "+col_date+""")={{ execution_date.year }}),
+			select """+j[0]+" from rtk_de.nmezhevova.ods_"+i+"  where EXTRACT(year FROM  "+col_date+""")={{ execution_date.year }}),
 	        hashed_columns as (
 			select """+j[1]+""" from derived_columns),
 		columns_to_select as (		
@@ -187,6 +190,12 @@ for j in hub_lst:
     elif j=='traffic':
         col_date='event'
     for i in hub_lst[j]:
+        if i=='user':
+            tabl="""(select p.user_pk,p.user_key,p.load_date,p.record_source,p.pay_date from rtk_de.nmezhevova.ods_v_payment_{{ execution_date.year }} as p
+                    union select m.user_pk,m.user_key,m.load_date,m.record_source,m.registered_at as pay_date from rtk_de.nmezhevova.ods_v_mdm_{{ execution_date.year }} as m )
+		    as u"""
+        else:
+            tabl="rtk_de.nmezhevova.ods_v_"+j+"_{{ execution_date.year }}"
         dds_hub = PostgresOperator(
         task_id="dds_hub_"+i,
         dag=dag,
@@ -197,8 +206,7 @@ for j in hub_lst:
 			            row_number() over(
 			            partition by """+i+"""_pk
 			            order by load_date asc) as row_number 
-			        from rtk_de.nmezhevova.ods_v_"""+j+\
-                    "_{{ execution_date.year }} where EXTRACT(year FROM  "+col_date+""")={{ execution_date.year }}) as h
+			        from """+tabl+" where EXTRACT(year FROM  "+col_date+""")={{ execution_date.year }}) as h
 		        where row_number = 1)
             insert into rtk_de.nmezhevova.dds_hub_"""+i+\
 	            " select a."+i+"_pk,a."+i+"""_key,a.load_date,a.record_source
@@ -279,9 +287,9 @@ sat_dict={'user':["a.user_pk,a.user_hashdiff,a.phone,a.effective_from,a.load_dat
 	 'device':["a.device_id_pk,a.device_hashdiff,a.device_ip_addr,a.effective_from,a.load_date,a.record_source",
 		   "c.device_id_pk,c.device_hashdiff,c.load_date",
 		   "e.device_id_pk,e.device_hashdiff,e.device_ip_addr,e.effective_from,e.load_date,e.record_source"],
-	 'mdm':["a.user_pk,a.mdm_hashdiff,a.user_key,a.legal_type,a.district,a.registered_at,a.billing_mode,a.is_vip,a.load_date,a.record_source",
+	 'mdm':["a.user_pk,a.mdm_hashdiff,a.legal_type,a.district,a.registered_at,a.billing_mode,a.is_vip,a.load_date,a.record_source",
 		"c.user_pk,c.mdm_hashdiff,c.load_date",
-		"e.user_pk,e.mdm_hashdiff,e.user_key,e.legal_type,e.district,e.registered_at,e.billing_mode,e.is_vip,e.load_date,e.record_source"]}
+		"e.user_pk,e.mdm_hashdiff,e.legal_type,e.district,e.registered_at,e.billing_mode,e.is_vip,e.load_date,e.record_source"]}
 
 for i,j in sat_dict.items():
     if i=='user' or i=='pay':
