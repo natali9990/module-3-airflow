@@ -32,24 +32,24 @@ sources={'payment':"user_id,pay_doc_type,pay_doc_num, account,phone,billing_peri
 	 'traffic':"user_id,to_timestamp(timestamp/1000),device_id, device_ip_addr, bytes_sent,bytes_received"}
 for i,j in sources.items():
     if i=='payment':
-        col_date='pay_date'
+        col_date=['pay_date','pay_date']
     elif i=='billing':
-        col_date='created_at'
+        col_date=['created_at','created_at']
     elif i=='issue':
-        col_date='start_time'
+        col_date=['start_time','start_time']
     elif i=='traffic':
-        col_date='to_timestamp(timestamp/1000)'
+        col_date=['event','to_timestamp(timestamp/1000)']
     clear_ods = PostgresOperator(
     task_id="clear_ods_"+i,
     dag=dag,        
     sql="""
-    DELETE FROM nmezhevova.ods_"""+i+" where EXTRACT(year FROM  "+col_date+"""::DATE)={{ execution_date.year }};
+    DELETE FROM nmezhevova.ods_"""+i+" where EXTRACT(year FROM  "+col_date[0]+"""::DATE)={{ execution_date.year }};
     """
     )
     fill_ods = PostgresOperator(
         task_id="fill_ods_"+i,
         dag=dag,        
-        sql="INSERT INTO nmezhevova.ods_"+i+" SELECT "+j+" FROM nmezhevova.stg_"+i+" where EXTRACT(year FROM  "+col_date+"::DATE)={{ execution_date.year }};"
+        sql="INSERT INTO nmezhevova.ods_"+i+" SELECT "+j+" FROM nmezhevova.stg_"+i+" where EXTRACT(year FROM  "+col_date[1]+"::DATE)={{ execution_date.year }};"
          ) 
  
     clear_ods>>all_ods_clear
