@@ -170,6 +170,7 @@ for i,j in view_dict.items():
 			select """+j[2]+""" from hashed_columns)
 		select * from columns_to_select)
 	select *, current_timestamp as load_date"""+j[3]+" from staging);"
+	    
         all_ods_loaded>>view_one_year
         view_one_year>>all_view_create
 
