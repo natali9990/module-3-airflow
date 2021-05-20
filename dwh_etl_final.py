@@ -171,8 +171,8 @@ for i,j in view_dict.items():
 		select * from columns_to_select)
 	select *, current_timestamp as load_date"""+j[3]+" from staging);"
 	    
-        all_ods_loaded>>view_one_year
-        view_one_year>>all_view_create
+        all_ods_loaded >> view_one_year
+        view_one_year >> all_view_create
 
 # список сущностей для хабов
 hub_lst={'payment':['user','account','pay_doc_type','billing_period'],'billing':['service','tariff'],'traffic':['device_id']}
