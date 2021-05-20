@@ -156,7 +156,7 @@ for i,j in view_dict.items():
     elif i=='mdm':
         col_date='registered_at'
     view_one_year = PostgresOperator(
-    task_id="view_one_year_{{ execution_date.year }}_"+i,
+    task_id="view_one_year_"+i,
     dag=dag,
     # postgres_conn_id="postgres_default",
     sql="""
@@ -340,7 +340,7 @@ for i,j in sat_dict.items():
 sources1=['payment','billing','issue','traffic','mdm']
 for i in sources1:
     drop_view = PostgresOperator(
-    task_id="drop_view_"+i+"_{{ execution_date.year }}",
+    task_id="drop_view_one_year_"+i,
     dag=dag,
         # postgres_conn_id="postgres_default",
     sql="drop  view if exists rtk_de.nmezhevova.ods_v_"+i+"_{{ execution_date.year }};"
