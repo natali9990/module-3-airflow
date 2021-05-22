@@ -192,8 +192,19 @@ for j in hub_lst:
     for i in hub_lst[j]:
         if i=='user':
             tabl="""(select p.user_pk,p.user_key,p.load_date,p.record_source,p.pay_date from rtk_de.nmezhevova.ods_v_payment_{{ execution_date.year }} as p
-                    union select m.user_pk,m.user_key,m.load_date,m.record_source,m.registered_at as pay_date from rtk_de.nmezhevova.ods_v_mdm_{{ execution_date.year }} as m )
-		    as u"""
+	    	union select b.user_pk,b.user_key,b.load_date,b.record_source,b.created_at as pay_date from rtk_de.nmezhevova.ods_v_billing_{{ execution_date.year }} as b
+		union select is.user_pk,is.user_key,is.load_date,is.record_source,is.start_time as pay_date from rtk_de.nmezhevova.ods_v_issue_{{ execution_date.year }} as is
+		union select t.user_pk,t.user_key,t.load_date,t.record_source,t.event as pay_date from rtk_de.nmezhevova.ods_v_traffic_{{ execution_date.year }} as t
+                union select m.user_pk,m.user_key,m.load_date,m.record_source,m.registered_at as pay_date from rtk_de.nmezhevova.ods_v_mdm_{{ execution_date.year }} as m )
+		as u"""
+        elif i=='billing_period':
+            tabl="""(select p.billing_period_pk,p.billing_period_key,p.load_date,p.record_source,p.pay_date from rtk_de.nmezhevova.ods_v_payment_{{ execution_date.year }} as p
+	    	union select b.billing_period_pk,b.billing_period_key,b.load_date,b.record_source,b.created_at as pay_date from rtk_de.nmezhevova.ods_v_billing_{{ execution_date.year }} as b)
+		as bil"""
+        elif i=='service':
+            tabl="""(select b.service_pk,b.service_key,b.load_date,b.record_source,b.created_at as pay_date from rtk_de.nmezhevova.ods_v_billing_{{ execution_date.year }} as b
+	    	union select is.service_pk,is.service_key,is.load_date,is.record_source,is.start_time as pay_date from rtk_de.nmezhevova.ods_v_issue_{{ execution_date.year }} as is)
+		as ser"""
         else:
             tabl="rtk_de.nmezhevova.ods_v_"+j+"_{{ execution_date.year }}"
         dds_hub = PostgresOperator(
