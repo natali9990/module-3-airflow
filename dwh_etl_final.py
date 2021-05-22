@@ -203,8 +203,8 @@ for j in hub_lst:
 	    	union select b.billing_period_pk,b.billing_period_key,b.load_date,b.record_source,b.created_at as pay_date from 
 		rtk_de.nmezhevova.ods_v_billing_{{ execution_date.year }} as b) as bil"""
         elif i=='service':
-            tabl="""(select b.service_pk,b.service_key,b.load_date,b.record_source,b.created_at as pay_date from rtk_de.nmezhevova.ods_v_billing_{{ execution_date.year }} as b
-	    	union select issu.service_pk,issu.service_key,issu.load_date,issu.record_source,issu.start_time as pay_date 
+            tabl="""(select b.service_pk,b.service_key,b.load_date,b.record_source,b.created_at as created_at from rtk_de.nmezhevova.ods_v_billing_{{ execution_date.year }} as b
+	    	union select issu.service_pk,issu.service_key,issu.load_date,issu.record_source,issu.start_time as created_at 
 		from rtk_de.nmezhevova.ods_v_issue_{{ execution_date.year }} as issu) as ser"""
         else:
             tabl="rtk_de.nmezhevova.ods_v_"+j+"_{{ execution_date.year }}"
