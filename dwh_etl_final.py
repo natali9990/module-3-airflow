@@ -370,3 +370,4 @@ for i in sources1:
     all_sat_loaded >>drop_view
     drop_view>>all_view_drop
 
+
