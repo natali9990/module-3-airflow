@@ -239,9 +239,10 @@ link_dict={'payment':["pay_pk,user_pk, billing_period_pk, pay_doc_type_pk, effec
            'user_account':["user_account_pk,user_pk, account_pk, load_date, record_source",
                            "a.user_account_pk,a.user_pk, a.account_pk, a.load_date, a.record_source",
                           "user_account"],
-	  'user_billing_period_service_tariff':["user_billing_period_service_tariff_pk,user_pk, billing_period_pk,service_pk,tariff_pk, effective_from, load_date,sum, record_source",
-						"a.user_billing_period_service_tariff_pk,a.user_pk, a.billing_period_pk,a.service_pk,a.tariff_pk, a.effective_from, a.load_date,a.sum, a.record_source",
-					       "user_billing_period_service_tariff"],
+	  
+'user_billing_period_service_tariff':["user_billing_period_service_tariff_pk,user_pk, billing_period_pk,service_pk,tariff_pk, effective_from, load_date,sum, record_source",
+		"a.user_billing_period_service_tariff_pk,a.user_pk, a.billing_period_pk,a.service_pk,a.tariff_pk, a.effective_from, a.load_date,a.sum, a.record_source",
+		"user_billing_period_service_tariff"],
 	  'user_service':["user_service_pk,user_pk, service_pk,start_time, end_time, load_date,  record_source",
 			  "a.user_service_pk,a.user_pk, a.service_pk,a.start_time, a.end_time, a.load_date,  a.record_source",
 			  "user_service"],
